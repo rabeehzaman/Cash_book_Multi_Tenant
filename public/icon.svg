@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="115" fill="#10b981"/>
+
+  <!-- Cash/Money Icon -->
+  <g transform="translate(128, 128)">
+    <!-- Banknote shape -->
+    <rect x="0" y="64" width="256" height="128" rx="16" fill="white" fill-opacity="0.95"/>
+
+    <!-- Currency symbol circle -->
+    <circle cx="128" cy="128" r="48" fill="#10b981"/>
+
+    <!-- Rupee symbol -->
+    <path d="M 108 108 L 148 108 M 108 118 L 148 118 M 138 108 L 138 128 C 138 138 128 148 108 148"
+          stroke="white"
+          stroke-width="8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+
+    <!-- Decorative circles -->
+    <circle cx="32" cy="128" r="16" fill="#10b981" fill-opacity="0.3"/>
+    <circle cx="224" cy="128" r="16" fill="#10b981" fill-opacity="0.3"/>
+  </g>
+</svg>
