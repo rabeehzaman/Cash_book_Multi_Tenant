@@ -90,11 +90,19 @@ export function OrganizationProvider({
     if (fetchingRef.current) return;
     fetchingRef.current = true;
 
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setError('Loading timeout - please refresh the page');
+      fetchingRef.current = false;
+    }, 10000); // 10 second timeout
+
     try {
       // Try cache first if not skipping
       if (!skipCache) {
         const cached = loadFromCache();
         if (cached) {
+          clearTimeout(timeoutId);
           setOrganization(cached.organization);
           setUserRole(cached.userRole);
           setLoading(false);
@@ -108,16 +116,25 @@ export function OrganizationProvider({
 
       const supabase = createClient();
 
-      // Get current user
+      // Get current user with error handling
       const {
         data: { user },
+        error: userError
       } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (userError || !user) {
+        clearTimeout(timeoutId);
+        console.error('Auth error in organization context:', userError);
         setOrganization(null);
         setUserRole(null);
         setLoading(false);
         fetchingRef.current = false;
+
+        // Clear invalid cache on auth error
+        localStorage.removeItem(CACHE_KEY);
+
+        // Don't redirect here - let middleware handle redirects
+        // This prevents infinite loops on public pages
         return;
       }
 
@@ -222,6 +239,7 @@ export function OrganizationProvider({
       // Clear invalid cache
       localStorage.removeItem(CACHE_KEY);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
       fetchingRef.current = false;
     }
@@ -241,7 +259,20 @@ export function OrganizationProvider({
   };
 
   useEffect(() => {
-    fetchOrganization();
+    // Don't fetch on auth pages to avoid unnecessary API calls
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      const isAuthPage = path.startsWith('/login') || path.startsWith('/signup');
+
+      if (!isAuthPage) {
+        fetchOrganization();
+      } else {
+        // On auth pages, just set loading to false
+        setLoading(false);
+      }
+    } else {
+      fetchOrganization();
+    }
   }, []);
 
   const value = {

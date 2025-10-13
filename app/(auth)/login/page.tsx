@@ -31,15 +31,18 @@ export default function LoginPage() {
 
       if (error) throw error;
 
-      if (data.user) {
+      if (data.user && data.session) {
+        // Ensure session is properly set before redirecting
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         toast.success("Welcome back!");
-        router.push("/");
-        router.refresh();
+
+        // Use window.location for full page reload to ensure session is loaded
+        window.location.href = "/";
       }
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to login");
-    } finally {
       setLoading(false);
     }
   };
