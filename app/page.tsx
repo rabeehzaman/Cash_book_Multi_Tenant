@@ -57,6 +57,9 @@ export default function Home() {
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
 
   const fetchData = async () => {
+    // Don't fetch if already loading
+    if (loading) return;
+
     try {
       setLoading(true);
       const response = await fetch("/api/transactions?limit=10");
@@ -166,10 +169,11 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!orgLoading && organization) {
+    // Start fetching as soon as organization is available (even if still loading)
+    if (organization) {
       fetchData();
     }
-  }, [orgLoading, organization]);
+  }, [organization?.id]); // Only re-fetch if organization ID changes
 
   const handleLogout = async () => {
     const supabase = createClient();

@@ -12,7 +12,7 @@
         "--project-ref=hxbbhtnukbowfagbfben"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_a6bdeefaf1719be870a30ba27486fe1bf5c46ad6"
+        "SUPABASE_ACCESS_TOKEN": "sbp_51b44baa07ca5239460949894b43f0cfa2bb31a3"
       }
     },
     "chrome-devtools": {

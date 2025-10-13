@@ -103,8 +103,8 @@ export async function POST(request: NextRequest) {
       throw dbError;
     }
 
-    // Log activity
-    await supabase.rpc("log_activity", {
+    // Log activity (non-blocking - don't await)
+    supabase.rpc("log_activity", {
       p_organization_id: membership.organization_id,
       p_user_id: user.id,
       p_action: "created",
@@ -115,6 +115,9 @@ export async function POST(request: NextRequest) {
         amount: transaction.amount,
         description: transaction.description,
       },
+    }).catch(err => {
+      // Log error but don't fail the request
+      console.error('Activity logging failed:', err);
     });
 
     return NextResponse.json({
@@ -205,43 +208,51 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    // Calculate balance from ALL transactions in organization (not just filtered)
-    let balanceQuery = supabase
-      .from('cashbook_transactions')
-      .select('amount, type');
+    // Calculate balance using database aggregation (single query)
+    const balanceFilters: any[] = [];
+    if (type && type !== 'all') balanceFilters.push(`type.eq.${type}`);
+    if (startDate) balanceFilters.push(`transaction_date.gte.${startDate}`);
+    if (endDate) balanceFilters.push(`transaction_date.lte.${endDate}`);
 
-    if (type && type !== 'all') {
-      balanceQuery = balanceQuery.eq('type', type);
+    // Use a single RPC call to calculate balance efficiently
+    const { data: balanceData, error: balanceError } = await supabase.rpc(
+      'calculate_balance',
+      {
+        p_organization_id: membership.organization_id,
+        p_type: type && type !== 'all' ? type : null,
+        p_start_date: startDate || null,
+        p_end_date: endDate || null,
+      }
+    );
+
+    if (balanceError) {
+      console.error('Balance calculation error:', balanceError);
+      // Fallback to calculating from fetched transactions if RPC fails
+      const cashIn = transactions
+        ?.filter((t) => t.type === 'cash_in')
+        .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0) || 0;
+      const cashOut = transactions
+        ?.filter((t) => t.type === 'cash_out')
+        .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0) || 0;
+
+      return NextResponse.json({
+        success: true,
+        transactions,
+        balance: {
+          total_cash_in: cashIn,
+          total_cash_out: cashOut,
+          net_balance: cashIn - cashOut,
+        },
+      });
     }
-
-    if (startDate) {
-      balanceQuery = balanceQuery.gte('transaction_date', startDate);
-    }
-
-    if (endDate) {
-      balanceQuery = balanceQuery.lte('transaction_date', endDate);
-    }
-
-    const { data: allTransactions } = await balanceQuery;
-
-    // Calculate balance from all transactions
-    const cashIn = allTransactions
-      ?.filter((t) => t.type === 'cash_in')
-      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0) || 0;
-
-    const cashOut = allTransactions
-      ?.filter((t) => t.type === 'cash_out')
-      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0) || 0;
-
-    const balance = cashIn - cashOut;
 
     return NextResponse.json({
       success: true,
       transactions,
       balance: {
-        total_cash_in: cashIn,
-        total_cash_out: cashOut,
-        net_balance: balance,
+        total_cash_in: balanceData?.cash_in || 0,
+        total_cash_out: balanceData?.cash_out || 0,
+        net_balance: balanceData?.net_balance || 0,
       },
     });
   } catch (error) {
