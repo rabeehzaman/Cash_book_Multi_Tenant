@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { OrganizationProvider } from "@/lib/contexts/organization-context";
@@ -80,6 +79,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Cash Book" />
+
+        {/* Android-specific PWA Meta Tags */}
+        <meta name="theme-color" content="#10b981" />
+        <meta name="screen-orientation" content="portrait" />
+
+        {/* Icons */}
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <link rel="shortcut icon" href="/icon-192x192.png" />
       </head>
@@ -91,7 +96,6 @@ export default function RootLayout({
         </OrganizationProvider>
         <Toaster />
         <OfflineIndicator />
-        <Script src="/register-sw.js" strategy="afterInteractive" />
       </body>
     </html>
   );
