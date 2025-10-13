@@ -211,14 +211,14 @@ export function QuickTransactionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-[95vw] sm:max-w-[425px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl">{modalTitle}</DialogTitle>
+          <DialogTitle className="text-lg sm:text-2xl">{modalTitle}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 mt-2 sm:mt-4">
           {/* Amount Field - Large and Prominent */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <Label htmlFor="amount" className="text-sm font-medium">
               Amount <span className="text-red-500">*</span>
             </Label>
@@ -230,15 +230,16 @@ export function QuickTransactionModal({
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              onWheel={(e) => e.currentTarget.blur()}
               required
               disabled={loading}
               autoFocus
-              className="h-14 text-2xl font-bold px-4"
+              className="h-12 sm:h-14 text-xl sm:text-2xl font-bold px-3 sm:px-4"
             />
           </div>
 
           {/* Transaction Date */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <Label htmlFor="transaction-date" className="text-sm font-medium">
               Date
             </Label>
@@ -299,7 +300,7 @@ export function QuickTransactionModal({
           </div>
 
           {/* Party Name - Optional */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <Label htmlFor="partyName" className="text-sm font-medium">
               {type === "cash_in" ? "Received From" : "Paid To"}{" "}
               <span className="text-muted-foreground text-xs">(optional)</span>
@@ -315,7 +316,7 @@ export function QuickTransactionModal({
           </div>
 
           {/* Category - Optional */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <Label htmlFor="category" className="text-sm font-medium">
               Category <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
@@ -342,7 +343,7 @@ export function QuickTransactionModal({
           </div>
 
           {/* Description Field - Optional */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <Label htmlFor="description" className="text-sm font-medium">
               Description <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
@@ -352,20 +353,20 @@ export function QuickTransactionModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={loading}
-              rows={3}
-              className="resize-none"
+              rows={2}
+              className="resize-none text-sm"
             />
           </div>
 
           {/* Receipt Upload - Optional */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <Label htmlFor="receipt" className="text-sm font-medium">
               Receipt <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
 
             {receiptFile ? (
-              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                <Upload className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2 p-2 sm:p-3 bg-muted rounded-lg">
+                <Upload className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm flex-1 truncate">{receiptFile.name}</span>
                 <Button
                   type="button"
@@ -373,6 +374,7 @@ export function QuickTransactionModal({
                   size="sm"
                   onClick={removeFile}
                   disabled={loading}
+                  className="h-8 w-8 p-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -395,20 +397,20 @@ export function QuickTransactionModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-2 sm:gap-3 pt-2 sm:pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
-              className="flex-1"
+              className="flex-1 h-10 sm:h-11"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading || !amount}
-              className={`flex-1 ${buttonColor}`}
+              className={`flex-1 h-10 sm:h-11 ${buttonColor}`}
             >
               {loading ? (
                 <>

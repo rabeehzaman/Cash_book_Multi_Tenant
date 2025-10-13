@@ -193,6 +193,7 @@ export function TransactionForm({ initialType }: TransactionFormProps) {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           onFocus={(e) => e.target.select()}
+          onWheel={(e) => e.currentTarget.blur()}
           placeholder="0.00"
           step="0.01"
           required
