@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       throw dbError;
     }
 
-    // Log activity (non-blocking - don't await)
+    // Log activity (non-blocking - fire and forget)
     supabase.rpc("log_activity", {
       p_organization_id: membership.organization_id,
       p_user_id: user.id,
@@ -115,9 +115,10 @@ export async function POST(request: NextRequest) {
         amount: transaction.amount,
         description: transaction.description,
       },
-    }).catch(err => {
-      // Log error but don't fail the request
-      console.error('Activity logging failed:', err);
+    }).then(({ error: logError }) => {
+      if (logError) {
+        console.error('Activity logging failed:', logError);
+      }
     });
 
     return NextResponse.json({
