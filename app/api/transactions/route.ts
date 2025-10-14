@@ -247,13 +247,16 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // RPC returns an array, get the first result
+    const balanceResult = Array.isArray(balanceData) && balanceData.length > 0 ? balanceData[0] : null;
+
     return NextResponse.json({
       success: true,
       transactions,
       balance: {
-        total_cash_in: balanceData?.cash_in || 0,
-        total_cash_out: balanceData?.cash_out || 0,
-        net_balance: balanceData?.net_balance || 0,
+        total_cash_in: parseFloat(balanceResult?.cash_in || '0'),
+        total_cash_out: parseFloat(balanceResult?.cash_out || '0'),
+        net_balance: parseFloat(balanceResult?.net_balance || '0'),
       },
     });
   } catch (error) {
