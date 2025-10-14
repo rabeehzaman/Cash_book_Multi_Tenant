@@ -149,14 +149,7 @@ export function QuickTransactionModal({
         throw new Error(data.error || `Failed to ${isEditing ? "update" : "create"} transaction`);
       }
 
-      // Success!
-      toast.success(
-        isEditing
-          ? "Transaction updated successfully!"
-          : type === "cash_in"
-          ? `💰 Cash in of ${parseFloat(amount).toLocaleString('en-IN')} recorded!`
-          : `💸 Cash out of ${parseFloat(amount).toLocaleString('en-IN')} recorded!`
-      );
+      // Success! (toast is handled by parent component after refetch)
 
       // Reset form
       setAmount("");

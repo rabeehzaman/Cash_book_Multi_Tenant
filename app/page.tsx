@@ -79,61 +79,21 @@ export default function Home() {
     }
   };
 
-  const handleTransactionSuccess = (newTransaction: Transaction) => {
-    if (!data) return;
-
-    // Add new transaction to the top of the list
-    const updatedTransactions = [newTransaction, ...data.transactions].slice(0, 10);
-
-    // Update balance calculations
-    const amount = newTransaction.amount;
-    const updatedBalance = {
-      total_cash_in: data.balance.total_cash_in + (newTransaction.type === "cash_in" ? amount : 0),
-      total_cash_out: data.balance.total_cash_out + (newTransaction.type === "cash_out" ? amount : 0),
-      net_balance: data.balance.net_balance + (newTransaction.type === "cash_in" ? amount : -amount),
-    };
-
-    // Update state with new transaction and balance
-    setData({
-      transactions: updatedTransactions,
-      balance: updatedBalance,
-    });
+  const handleTransactionSuccess = async (newTransaction: Transaction) => {
+    // Refetch data from server to get accurate balance
+    await fetchData();
+    toast.success("Transaction added successfully");
   };
 
-  const handleTransactionUpdate = (updatedTransaction: Transaction) => {
-    if (!data) return;
-
-    // Find the old transaction to calculate balance difference
-    const oldTransaction = data.transactions.find((t) => t.id === updatedTransaction.id);
-    if (!oldTransaction) return;
-
-    // Calculate the difference in amounts
-    const oldAmount = oldTransaction.type === "cash_in" ? oldTransaction.amount : -oldTransaction.amount;
-    const newAmount = updatedTransaction.type === "cash_in" ? updatedTransaction.amount : -updatedTransaction.amount;
-    const difference = newAmount - oldAmount;
-
-    // Update transactions list
-    const updatedTransactions = data.transactions.map((t) =>
-      t.id === updatedTransaction.id ? updatedTransaction : t
-    );
-
-    // Update balance calculations
-    const updatedBalance = {
-      total_cash_in: data.balance.total_cash_in - (oldTransaction.type === "cash_in" ? oldTransaction.amount : 0) + (updatedTransaction.type === "cash_in" ? updatedTransaction.amount : 0),
-      total_cash_out: data.balance.total_cash_out - (oldTransaction.type === "cash_out" ? oldTransaction.amount : 0) + (updatedTransaction.type === "cash_out" ? updatedTransaction.amount : 0),
-      net_balance: data.balance.net_balance + difference,
-    };
-
-    setData({
-      transactions: updatedTransactions,
-      balance: updatedBalance,
-    });
-
+  const handleTransactionUpdate = async (updatedTransaction: Transaction) => {
+    // Refetch data from server to get accurate balance
+    await fetchData();
     setEditingTransaction(null);
+    toast.success("Transaction updated successfully");
   };
 
   const handleDelete = async () => {
-    if (!deletingTransaction || !data) return;
+    if (!deletingTransaction) return;
 
     try {
       const response = await fetch(`/api/transactions/${deletingTransaction.id}`, {
@@ -146,22 +106,8 @@ export default function Home() {
         throw new Error(result.error || "Failed to delete transaction");
       }
 
-      // Remove transaction from list
-      const updatedTransactions = data.transactions.filter((t) => t.id !== deletingTransaction.id);
-
-      // Update balance calculations
-      const amount = deletingTransaction.amount;
-      const updatedBalance = {
-        total_cash_in: data.balance.total_cash_in - (deletingTransaction.type === "cash_in" ? amount : 0),
-        total_cash_out: data.balance.total_cash_out - (deletingTransaction.type === "cash_out" ? amount : 0),
-        net_balance: data.balance.net_balance - (deletingTransaction.type === "cash_in" ? amount : -amount),
-      };
-
-      setData({
-        transactions: updatedTransactions,
-        balance: updatedBalance,
-      });
-
+      // Refetch data from server to get accurate balance
+      await fetchData();
       toast.success("Transaction deleted successfully");
     } catch (error: any) {
       console.error("Delete error:", error);
