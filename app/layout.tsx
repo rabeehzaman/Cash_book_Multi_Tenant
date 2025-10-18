@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { OrganizationProvider } from "@/lib/contexts/organization-context";
 import { OfflineIndicator } from "@/components/offline-indicator";
+import { PWARegister } from "@/components/pwa-register";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -96,6 +97,7 @@ export default function RootLayout({
         </OrganizationProvider>
         <Toaster />
         <OfflineIndicator />
+        <PWARegister />
       </body>
     </html>
   );
