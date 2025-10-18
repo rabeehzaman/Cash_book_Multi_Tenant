@@ -62,6 +62,7 @@ export const viewport: Viewport = {
   themeColor: "#10b981",
   width: "device-width",
   initialScale: 1,
+  minimumScale: 1,
   maximumScale: 5,
   userScalable: true,
   viewportFit: "cover",
@@ -75,18 +76,34 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Manifest - Critical for PWA */}
+        <link rel="manifest" href="/manifest.json" />
+
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Cash Book" />
 
-        {/* Android-specific PWA Meta Tags */}
+        {/* Android-specific PWA Meta Tags - Critical for Installation */}
         <meta name="theme-color" content="#10b981" />
+        <meta name="display" content="standalone" />
         <meta name="screen-orientation" content="portrait" />
 
+        {/* Chrome/Android Address Bar Color */}
+        <meta name="theme-color" content="#10b981" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#10b981" media="(prefers-color-scheme: dark)" />
+
+        {/* Fullscreen support for Android */}
+        <meta name="full-screen" content="yes" />
+        <meta name="browsermode" content="application" />
+
         {/* Icons */}
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icon-192x192.png" />
         <link rel="shortcut icon" href="/icon-192x192.png" />
       </head>
       <body

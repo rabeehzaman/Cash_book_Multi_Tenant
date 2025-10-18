@@ -6,11 +6,13 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#10b981",
   "prefer_related_applications": false,
+  "dir": "ltr",
+  "lang": "en-US",
   "categories": ["finance", "business", "productivity"],
   "icons": [
     {
@@ -47,7 +49,7 @@
       "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-384x384.png",
@@ -59,7 +61,7 @@
       "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-maskable-192x192.png",
@@ -80,14 +82,14 @@
       "short_name": "Cash In",
       "description": "Record a cash in transaction",
       "url": "/add?type=cash_in",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Add Cash Out",
       "short_name": "Cash Out",
       "description": "Record a cash out transaction",
       "url": "/add?type=cash_out",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
