@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -16,7 +16,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Get user's active organization
     const { data: membership } = await supabase
@@ -38,12 +38,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Update invitation status to cancelled
+    // Delete the invitation
     const { error } = await supabase
       .from("user_invitations")
-      .update({ status: "cancelled" })
+      .delete()
       .eq("id", id)
-      .eq("organization_id", membership.organization_id);
+      .eq("organization_id", membership.organization_id)
+      .eq("status", "pending");
 
     if (error) throw error;
 
@@ -59,7 +60,7 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -72,7 +73,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { role } = await request.json();
 
     if (!role || !["admin", "editor", "viewer"].includes(role)) {

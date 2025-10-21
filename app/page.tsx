@@ -35,6 +35,13 @@ interface Transaction {
   receipt_url?: string | null;
   party_name?: string | null;
   category_id?: string | null;
+  category?: {
+    id: string;
+    name: string;
+    type: string;
+    color?: string;
+    icon?: string;
+  } | null;
 }
 
 interface DashboardData {
@@ -140,21 +147,10 @@ export default function Home() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
-    } else {
-      return date.toLocaleDateString('en-IN', {
-        month: 'short',
-        day: 'numeric',
-        year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
-      });
-    }
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   if (orgLoading) {
@@ -339,9 +335,9 @@ export default function Home() {
                   key={transaction.id}
                   className="bg-white rounded-xl p-4 shadow-sm border hover:shadow-md transition-shadow"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
                         <span className="text-2xl">
                           {transaction.type === "cash_in" ? "💸" : "💳"}
                         </span>
@@ -354,7 +350,43 @@ export default function Home() {
                           </p>
                         </div>
                       </div>
+
+                      {/* Party Name */}
+                      {transaction.party_name && (
+                        <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground pl-9">
+                          <span className="font-medium">
+                            {transaction.type === "cash_in" ? "From:" : "To:"}
+                          </span>
+                          <span>{transaction.party_name}</span>
+                        </div>
+                      )}
+
+                      {/* Category */}
+                      {transaction.category && (
+                        <div className="flex items-center gap-2 pl-9">
+                          {transaction.category.color && (
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: transaction.category.color }}
+                            />
+                          )}
+                          <span className="text-xs md:text-sm text-muted-foreground">
+                            {transaction.category.name}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Receipt */}
+                      {transaction.receipt_url && (
+                        <button
+                          onClick={() => window.open(transaction.receipt_url!, "_blank")}
+                          className="text-xs text-blue-600 hover:underline pl-9 flex items-center gap-1"
+                        >
+                          📎 View Receipt
+                        </button>
+                      )}
                     </div>
+
                     <div className="text-right flex items-center gap-2">
                       <p
                         className={`text-lg md:text-xl font-bold ${

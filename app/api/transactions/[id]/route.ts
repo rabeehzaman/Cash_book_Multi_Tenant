@@ -19,7 +19,10 @@ export async function GET(
 
     const { data: transaction, error } = await supabase
       .from("cashbook_transactions")
-      .select("*")
+      .select(`
+        *,
+        category:transaction_categories(id, name, type, color, icon)
+      `)
       .eq("id", id)
       .single();
 
@@ -135,7 +138,10 @@ export async function PUT(
       .update(updateData)
       .eq("id", id)
       .eq("organization_id", membership.organization_id)
-      .select()
+      .select(`
+        *,
+        category:transaction_categories(id, name, type, color, icon)
+      `)
       .single();
 
     if (error) {

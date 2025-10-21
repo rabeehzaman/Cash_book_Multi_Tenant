@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, UserPlus, Mail, Users, Activity, Tag, Trash2, Edit2, Check, X } from "lucide-react";
+import { ArrowLeft, UserPlus, Mail, Users, Activity, Tag, Trash2, Edit2, Check, X, Copy, CheckCircle, Send } from "lucide-react";
 import Link from "next/link";
 
 interface Member {
@@ -71,6 +72,8 @@ export default function SettingsPage() {
   const [categoryName, setCategoryName] = useState("");
   const [categoryType, setCategoryType] = useState<string>("both");
   const [categoryColor, setCategoryColor] = useState("#10b981");
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [showInviteLink, setShowInviteLink] = useState(false);
 
   useEffect(() => {
     if (!orgLoading && organization) {
@@ -129,9 +132,16 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (data.success) {
-        toast.success("Invitation sent successfully");
+        toast.success("Invitation created successfully");
         setInviteEmail("");
         setInviteRole("viewer");
+
+        // Show invitation link if available
+        if (data.inviteLink) {
+          setInviteLink(data.inviteLink);
+          setShowInviteLink(true);
+        }
+
         fetchData();
       } else {
         toast.error(data.error || "Failed to send invitation");
@@ -154,6 +164,26 @@ export default function SettingsPage() {
       }
     } catch (error) {
       toast.error("Failed to cancel invitation");
+    }
+  };
+
+  const handleResendInvitation = async (id: string) => {
+    try {
+      const res = await fetch(`/api/invitations/${id}/resend`, { method: "POST" });
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Invitation resent successfully");
+        // Show the invitation link dialog
+        if (data.inviteLink) {
+          setInviteLink(data.inviteLink);
+          setShowInviteLink(true);
+        }
+      } else {
+        toast.error(data.error || "Failed to resend invitation");
+      }
+    } catch (error) {
+      toast.error("Failed to resend invitation");
     }
   };
 
@@ -260,6 +290,13 @@ export default function SettingsPage() {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const copyInviteLink = () => {
+    if (inviteLink) {
+      navigator.clipboard.writeText(inviteLink);
+      toast.success("Invitation link copied to clipboard!");
+    }
   };
 
   if (orgLoading || loading) {
@@ -454,9 +491,18 @@ export default function SettingsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleCancelInvitation(invitation.id)}
+                              onClick={() => handleResendInvitation(invitation.id)}
+                              title="Resend invitation email"
                             >
-                              <X className="h-4 w-4" />
+                              <Send className="h-4 w-4 text-blue-500" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleCancelInvitation(invitation.id)}
+                              title="Cancel invitation"
+                            >
+                              <X className="h-4 w-4 text-red-500" />
                             </Button>
                           </div>
                         </div>
@@ -611,6 +657,52 @@ export default function SettingsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Invitation Link Dialog */}
+      <Dialog open={showInviteLink} onOpenChange={setShowInviteLink}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-emerald-600" />
+              Invitation Created!
+            </DialogTitle>
+            <DialogDescription>
+              Share this link with the invited user
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2">Invitation Link:</p>
+              <div className="flex gap-2">
+                <Input
+                  value={inviteLink || ""}
+                  readOnly
+                  className="font-mono text-sm"
+                />
+                <Button onClick={copyInviteLink} size="icon" variant="outline">
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                📧 {process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "your_resend_api_key_here"
+                  ? "An email has been sent to the user with this link."
+                  : "Email is not configured. Please share this link manually with the user."}
+              </p>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              💡 Tip: The invitation will expire in 7 days. The user can accept it by clicking the link above.
+            </div>
+            <Button
+              onClick={() => setShowInviteLink(false)}
+              className="w-full"
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

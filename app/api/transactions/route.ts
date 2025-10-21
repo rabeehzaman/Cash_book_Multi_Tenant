@@ -96,7 +96,10 @@ export async function POST(request: NextRequest) {
         party_name: validatedData.party_name || null,
         created_by: user.id,
       })
-      .select()
+      .select(`
+        *,
+        category:transaction_categories(id, name, type, color, icon)
+      `)
       .single();
 
     if (dbError) {
@@ -178,10 +181,14 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
 
     // Build query - RLS automatically filters by organization
+    // Join with categories table to get category details
     let query = supabase
       .from('cashbook_transactions')
-      .select('*')
-      .order('transaction_date', { ascending: false });
+      .select(`
+        *,
+        category:transaction_categories(id, name, type, color, icon)
+      `)
+      .order('created_at', { ascending: false });
 
     if (type && type !== 'all') {
       query = query.eq('type', type);

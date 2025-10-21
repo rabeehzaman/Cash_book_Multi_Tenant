@@ -28,6 +28,13 @@ interface Transaction {
   receipt_url?: string | null;
   party_name?: string | null;
   category_id?: string | null;
+  category?: {
+    id: string;
+    name: string;
+    type: string;
+    color?: string;
+    icon?: string;
+  } | null;
 }
 
 interface QuickTransactionModalProps {
@@ -112,9 +119,14 @@ export function QuickTransactionModal({
       const data = await res.json();
       if (data.success) {
         setCategories(data.categories);
+        console.log(`Fetched ${data.categories.length} categories for type ${type}`);
+      } else {
+        console.error("Failed to fetch categories:", data.error);
+        toast.error(data.error || "Failed to load categories");
       }
     } catch (error) {
       console.error("Failed to fetch categories:", error);
+      toast.error("Failed to load categories");
     }
   };
 
@@ -313,24 +325,30 @@ export function QuickTransactionModal({
             <Label htmlFor="category" className="text-sm font-medium">
               Category <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
-            <Select value={categoryId} onValueChange={(value) => setCategoryId(value)} disabled={loading || categories.length === 0}>
+            <Select value={categoryId} onValueChange={(value) => setCategoryId(value)} disabled={loading}>
               <SelectTrigger>
-                <SelectValue placeholder={categories.length === 0 ? "Loading categories..." : "Select a category (optional)"} />
+                <SelectValue placeholder={categories.length === 0 ? "No categories available" : "Select a category (optional)"} />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    <div className="flex items-center gap-2">
-                      {cat.color && (
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: cat.color }}
-                        />
-                      )}
-                      <span>{cat.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
+                {categories.length === 0 ? (
+                  <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                    No categories found. Create one in Settings.
+                  </div>
+                ) : (
+                  categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        {cat.color && (
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: cat.color }}
+                          />
+                        )}
+                        <span>{cat.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

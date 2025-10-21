@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { resend, EMAIL_FROM, APP_URL, getInvitationEmailHTML, getInvitationEmailText } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   try {
@@ -133,16 +134,94 @@ export async function POST(request: NextRequest) {
       p_invited_by: user.id,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating invitation:", error);
+      throw error;
+    }
+
+    console.log("Created invitation ID:", data);
 
     // Get the created invitation
-    const { data: invitation } = await supabase
+    const { data: invitation, error: invitationError } = await supabase
       .from("user_invitations")
       .select("*")
       .eq("id", data)
       .single();
 
-    return NextResponse.json({ success: true, invitation });
+    if (invitationError) {
+      console.error("Error retrieving invitation:", invitationError);
+      console.error("Invitation ID that failed:", data);
+    }
+
+    if (!invitation) {
+      console.error("Invitation not found for ID:", data);
+      throw new Error("Failed to retrieve created invitation");
+    }
+
+    // Get organization details
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", invitation.organization_id)
+      .single();
+
+    // Get inviter details
+    const { data: inviterProfile } = await supabase
+      .from("user_profiles")
+      .select("full_name, email")
+      .eq("id", invitation.invited_by)
+      .single();
+
+    // Send invitation email
+    try {
+      const inviteLink = `${APP_URL}/invite/${invitation.token}`;
+      const invitedByName = inviterProfile?.full_name || inviterProfile?.email || "A team member";
+      const organizationName = org?.name || "the organization";
+
+      console.log("Attempting to send email...");
+      console.log("- To:", email);
+      console.log("- From:", EMAIL_FROM);
+      console.log("- Resend API Key configured:", !!process.env.RESEND_API_KEY);
+
+      // Check if Resend is configured
+      if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "your_resend_api_key_here") {
+        console.log("Sending email via Resend...");
+        const result = await resend.emails.send({
+          from: EMAIL_FROM,
+          to: email,
+          subject: `You're invited to join ${organizationName}`,
+          html: getInvitationEmailHTML({
+            organizationName,
+            invitedByName,
+            role,
+            inviteLink,
+            expiresAt: invitation.expires_at,
+          }),
+          text: getInvitationEmailText({
+            organizationName,
+            invitedByName,
+            role,
+            inviteLink,
+            expiresAt: invitation.expires_at,
+          }),
+        });
+        console.log("✅ Email sent successfully!", result);
+      } else {
+        console.warn("⚠️ Resend API key not configured. Invitation created but email not sent.");
+        console.log(`📋 Invitation link: ${inviteLink}`);
+      }
+    } catch (emailError: any) {
+      console.error("❌ Failed to send invitation email:", emailError);
+      console.error("Error details:", emailError.message || emailError);
+      // Don't fail the request if email sending fails
+      // The invitation is still created and can be shared manually
+    }
+
+    return NextResponse.json({
+      success: true,
+      invitation,
+      inviteLink: `${APP_URL}/invite/${invitation.token}`
+    });
   } catch (error: any) {
     console.error("Error creating invitation:", error);
     return NextResponse.json(
